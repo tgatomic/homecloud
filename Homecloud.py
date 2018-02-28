@@ -21,34 +21,39 @@ class Rainbow:
     i + x is the offsett for the different leds so they don't have the same color.
     """
     np = neopixel.NeoPixel(machine.Pin(0), 5)
+    step = 0
 
     def __init__(self):
         print('Rainbow created!')
 
     def show(self, delay):
-        for i in range(0,256):
-            self.wheel(i, 0, self.np)
-            self.wheel(i + 10, 1, self.np)
-            self.wheel(i + 20, 2, self.np)
-            self.wheel(i + 30, 3, self.np)
-            self.wheel(i + 40, 4, self.np)
+        self.wheel(self.step, 0)
+        self.wheel(self.step + 10, 1)
+        self.wheel(self.step + 20, 2)
+        self.wheel(self.step + 30, 3)
+        self.wheel(self.step + 40, 4)
 
-            self.np.write()
-            time.sleep_ms(delay)
+        self.np.write()
 
-    def wheel(self, i, j, np):
+        self.step += 1
+        if self.step > 255:
+            self.step = 0
+
+        time.sleep_ms(delay)
+
+    def wheel(self, i, j):
         wheel_pos = ((i+j) & 255)
         wheel_pos = 255 - wheel_pos
 
         if wheel_pos < 85:
-            np[j] = (255 - wheel_pos * 3, 0, wheel_pos * 3)
+            self.np[j] = (255 - wheel_pos * 3, 0, wheel_pos * 3)
             return
         if wheel_pos < 170:
             wheel_pos -= 85
-            np[j] = (0, wheel_pos * 3, 255 - wheel_pos * 3)
+            self.np[j] = (0, wheel_pos * 3, 255 - wheel_pos * 3)
             return 
         wheel_pos -= 170
-        np[j] = (wheel_pos * 3, 255 - wheel_pos * 3, 0)
+        self.np[j] = (wheel_pos * 3, 255 - wheel_pos * 3, 0)
 
 class Led:
     np = neopixel.NeoPixel(machine.Pin(0), 5)
@@ -249,7 +254,6 @@ class HA_Client:
             while True:
                 c.check_msg()
                 if self.updated == True:
-                    print('Updateing color')
                     led.update_colors(self.red, self.green, self.blue)
                     self.updated = False
 
